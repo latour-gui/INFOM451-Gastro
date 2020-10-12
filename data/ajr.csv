@@ -1,29 +1,29 @@
 Nom nutriment;unité;Valeur AJR de la directive 90/496/CEE + AR 3/3/1992*;Valeur AJR de la directive 2008/100/CE; Minimum; Minimum % de l’AJR;Maximum; Maximum % de l’AJR;column in product
 Vitamine A (retinol)            ;μg;800     ;800;120   ;15;1200     ;150;14
-Vitamine B1 (thiamine)           ;mg;1,4    ;1,1;0,21   ;15;4,2     ; 300;21
-Vitamine B2 (ribolflavine)        ;mg;1,6   ;1,4;0,24   ;15;4,8     ; 300;22
-Vitamine B3 (niacine)           ;mg;18      ;16 ;2,7    ;15;54      ; 300;23
-Vitamine B5 (acide pantothénique) ;mg;6    ;6   ;0,9    ;15;18     ;300;-
-Vitamine B6 (pyridoxine)          ;mg;2    ;1,4 ;0,3    ;15;6      ;300;24
-Vitamine B12 (cyano-cobalamine)   ;μg;1    ;2,5 ;0,15   ;15;3      ;300;30
+Vitamine B1 (thiamine)           ;mg;1.4    ;1.1;0.21   ;15;4.2     ; 300;21
+Vitamine B2 (ribolflavine)        ;mg;1.6   ;1.4;0.24   ;15;4.8     ; 300;22
+Vitamine B3 (niacine)           ;mg;18      ;16 ;2.7    ;15;54      ; 300;23
+Vitamine B5 (acide pantothénique) ;mg;6    ;6   ;0.9    ;15;18     ;300;-
+Vitamine B6 (pyridoxine)          ;mg;2    ;1.4 ;0.3    ;15;6      ;300;24
+Vitamine B12 (cyano-cobalamine)   ;μg;1    ;2.5 ;0.15   ;15;3      ;300;30
 Vitamine C (acide L-ascorbique)   ;mg;60   ;80  ;9    ;15;180      ;300;32
-Vitamine D (calciphérol)          ;μg;5    ;5   ;0,75   ;15;7,5    ;150;33
-Vitamine E (alfa-tocophérol)      ;mg;10   ;12  ;1,5    ;15;30     ;300;34
-Vitamine H (biotine)              ;µg;150  ;50  ;0,0225 ;15;0,45   ;300;-
-Vitamine K (phytomenadione)       ;μg;45  ;-   ;6,75   ;15;135;300;36
+Vitamine D (calciphérol)          ;μg;5    ;5   ;0.75   ;15;7.5    ;150;33
+Vitamine E (alfa-tocophérol)      ;mg;10   ;12  ;1.5    ;15;30     ;300;34
+Vitamine H (biotine)              ;µg;150  ;50  ;0.0225 ;15;0.45   ;300;-
+Vitamine K (phytomenadione)       ;μg;45  ;-   ;6.75   ;15;135;300;36
 Vitamine M (acide folique)        ;μg;200  ;200 ;30   ;15;400      ;200;25
 Calcium                           ;mg;800  ;800 ;120  ;15;1600     ;200;37
 Chloride                          ;mg;3500;800 ;525  ;15;7000     ;200;-
-Chrome                            ;μg;125 ;40  ;18,75   ;15;187,5 ;150;-
-Fluorure                          ;mg;-    ;3,5 ;-   ;-;-;-;-
+Chrome                            ;μg;125 ;40  ;18.75   ;15;187.5 ;150;-
+Fluorure                          ;mg;-    ;3.5 ;-   ;-;-;-;-
 Phosphore                         ;mg;800  ;700 ;120  ;15;1600     ;200;38
-Fer                               ;mg;14   ;14  ;2,1    ;15;28     ;200;40
-Iode                              ;μg;150  ;150 ;22,5    ;15;225   ;150;-
+Fer                               ;mg;14   ;14  ;2.1    ;15;28     ;200;40
+Iode                              ;μg;150  ;150 ;22.5    ;15;225   ;150;-
 Potassium                         ;mg;4000;2000;600  ;15;6000     ;150;44
-Cuivre                            ;mg;1,1 ;1   ;0,165  ;15;1,65   ;150;42
+Cuivre                            ;mg;1.1 ;1   ;0.165  ;15;1.65   ;150;42
 Magnésium                         ;mg;300  ;375 ;45   ;15;450      ;150;39
-Manganèse                         ;mg;3,5 ;2   ;0,525  ;15;5,25   ;150;-
-Molybdène                         ;μg;150 ;50  ;22,5    ;15;225   ;150;-
+Manganèse                         ;mg;3.5 ;2   ;0.525  ;15;5.25   ;150;-
+Molybdène                         ;μg;150 ;50  ;22.5    ;15;225   ;150;-
 Sodium                            ;mg;2500;-   ;375  ;15;5000     ;150;45
-Sélénium                          ;μg;70  ;55  ;10,5    ;15;105   ;150;43
-Zinc                              ;mg;15   ;10  ;2,25   ;15;22,5; 150;41
+Sélénium                          ;μg;70  ;55  ;10.5    ;15;105   ;150;43
+Zinc                              ;mg;15   ;10  ;2.25   ;15;22.5; 150;41
