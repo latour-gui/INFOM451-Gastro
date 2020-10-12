@@ -105,7 +105,7 @@ class AJRValue(value: Double, unit: AJRUnit) {
       case AJRUnit("g") => 1
       case AJRUnit("mg") => 0.0001
       case AJRUnit("µg") => 0.0000001 // U+00B5 : MICRO SIGN (used when I type a "mu" with my keyboard)
-      case AJRUnit("μg") => 0.0000001 // U+03BC : GREEK SMALL LETTER MU (used by some data c/c from internet)
+      case AJRUnit("μg") => 0.0000001 // U+03BC : GREEK SMALL LETTER MU (used by some data c/p from internet)
       case _ =>
         println("The error comes from the " + unit + " unit")
         throw new Exception("unit not managed")
