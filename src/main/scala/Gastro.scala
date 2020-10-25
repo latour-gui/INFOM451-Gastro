@@ -1,7 +1,39 @@
 import scala.util.Random
 
+
 object Main {
-  def ask_for_int(message: String): Int = {
+
+  /**
+   * Entrypoint of the program.
+   *
+   * This will load two files via the corresponding extractors,
+   * then it will ask how many items the user wants in its menu,
+   * then it will propose all the combinations of the products that respects the Recommended daily intake.
+   * Between each combination, the program expect the user to manifest its intention to keep displaying menus.
+   *
+   * @param args The parameters of the program
+   */
+  def main(args: Array[String]) {
+    val products: Seq[Product] = GastroExtractor.extractProduct()
+    val ajrs = GastroExtractor.extractAjr()
+    val menuComposer = new MenuComposer(products, ajrs)
+
+    val n: Int = askForInt("How many items do you want in your menu ?")
+    for (meal <- menuComposer.compose(n)) {
+      println(meal)
+      scala.io.StdIn.readLine("Not satisfied? Hit any key to try another random menu composition out!")
+    }
+  }
+
+  /**
+   * Binding to allow a user to input an integer
+   *
+   * This will loop until the user is able to enter an integer
+   *
+   * @param message The message that will be displayed to the user while waiting for an integer
+   * @return The integer entered by the user
+   */
+  def askForInt(message: String): Int = {
     var input: Option[Int] = None
     while (input.isEmpty) {
       input = scala.io.StdIn.readLine(message).toIntOption
@@ -9,98 +41,178 @@ object Main {
     input.get
   }
 
-  def main(args: Array[String]) {
-    val products: List[Product] = GastroExtractor.extract_products()
-    val ajrs = GastroExtractor.extract_ajr()
-    val menu_composer = new MenuComposer(products, ajrs)
-
-    var n = 0
-    while (true) {
-      n = ask_for_int("How many items do you want in your menu ?")
-      menu_composer.compose(n)
-      scala.io.StdIn.readLine("Not satisfied? Hit any key to try another random menu composition out!")
-    }
-  }
 }
 
-class MenuComposer(products: List[Product], ajrs: List[AJRLimit]) {
-  private def random_item(n: Int): List[Product] = {
+//<editor-fold desc="MENU">
+
+/**
+ * The `Menu` class contains computing logic that allows one to know if the menu is valid in the point of view of the
+ * recommended daily intake.
+ *
+ * @param products the products contained in the menu
+ */
+class Menu(products: Seq[Product]) {
+  override def toString: String = "The menu is composed by the following elements :\n\t- " + products.map(_.toString).mkString("\n\t- ")
+
+  /**
+   * Sum the value of each product properties
+   *
+   * This allows easy manipulation of all the ProductProperty's AJRValue contained in the menu.
+   *
+   * @return
+   */
+  def totalProperties: Seq[ProductProperty] = {
+    products
+      .flatMap(_.getProperties)
+      .groupBy(_.getId)
+      .map {
+        case (id: Int, properties: Seq[ProductProperty]) => new ProductProperty(
+          id,
+          "unnecessary",
+          // sum the AJRValues of properties with fold
+          properties.map(_.getValue).fold(new AJRValue(0, AJRUnit("g"))) { case (acc, elem) => acc + elem }
+        )
+      }
+
+      .toList
+  }
+
+  /**
+   * Logic behind the validation of a menu
+   *
+   * The menu must
+   *  - contain only unique products
+   *  - all the ProductProperty's values must be between min and max AJRValue
+   *
+   * @param ajrs The list of the Daily Recommended Intake (Apport Journalier Recommandé in french)
+   * @return true if the menu is valid, false otherwise
+   */
+  def validate(ajrs: Seq[AJRLimit]): Boolean = uniqueProduct && validAjr(ajrs)
+
+  /**
+   * Check if the products in the menu are all different
+   *
+   * @return true if every product appears only once, false otherwise
+   */
+  def uniqueProduct: Boolean = products.length == products.map(_.getId).distinct.length
+
+  /**
+   * Check if the addition of all the products in the menu do respect the Daily Recommended Intake
+   *
+   * @param ajrs The list of the AJRLimit wich determine the daily recommended intake
+   * @return true if its ok, false otherwise
+   */
+  def validAjr(ajrs: Seq[AJRLimit]): Boolean = {
     (for {
-      _ <- 1 to n
-    } yield products((new Random).nextInt.abs % products.length)).toList
+      ajr <- ajrs
+      value <- totalProperties
+      if ajr.getId == value.getId
+      v = value.getValue
+      result = v <= ajr.getMaximum && v >= ajr.getMinimum
+    } yield result).forall(i => i)
+  }
+}
+
+/**
+ * The MenuCompose class is responsible for generating combinations of products and sending the valid ones as a LazyList
+ *
+ * @param products The products at our disposition to compose menus
+ * @param ajrs     The AJRLimit that we use to validate the menus
+ */
+class MenuComposer(products: Seq[Product], ajrs: Seq[AJRLimit]) {
+
+  /**
+   * Generate all the possible combinations of n products from all of those at our disposition
+   *
+   * It is really important that the return type is LazyList instead of List.
+   * Because if the List was evaluated at this function call, it's most likely to block the threat for a long time
+   *
+   * @param n the number of products that should be in the combination
+   * @return lazy evaluated list of the combinations of n product from the given list
+   */
+  def allProductCombinations(n: Int): LazyList[Menu] = {
+    LazyList.from(for {
+      m <- Random.shuffle(products).combinations(n)
+    } yield new Menu(m))
   }
 
-  def compose(n: Int): Unit = {
-    val begin_with = random_item(n / 2)
-    val end_products = better_compose(begin_with, products, n)
-
-    println("----- Your menu is composed with the following " + n + " products:")
-    end_products.foreach(println)
-
-  }
-
-  def better_compose(start_products: List[Product], list_products: List[Product], n: Int): List[Product] = {
-    //    if (start_products.length >= 3 || list_products.isEmpty) {
-    if (start_products.length >= n) {
-      return start_products
-    }
-
-    val filtered = for {
-      p <- list_products
-      if !start_products.contains(p)
-      if p.validate(ajrs)
-    } yield p
-
+  /**
+   * Compose a lazy evaluated list of menu that do respect the daily recommended intake
+   *
+   * @param n the number of product in the menu
+   * @return lazy evaluated list of menu
+   */
+  def compose(n: Int): LazyList[Menu] = {
     for {
-      p <- filtered
-      elem <- better_compose(p :: start_products, filtered, n)
-    } yield elem
+      menu <- allProductCombinations(n)
+      if menu.validate(ajrs)
+    } yield menu
   }
 }
 
-class ProductProperty(id: Int, name: String, value: AJRValue) {
-  def get_value: AJRValue = value
+// </editor-fold>
+//<editor-fold desc="PRODUCT">
 
-  def get_id: Int = id
+/**
+ * Property of a product
+ *
+ * This is only a hollow class that helps the manipulation of data by giving them meaning
+ * ty captain obvious, its a class
+ *
+ * @param id    the number of the column of the property in the `products.csv`
+ * @param name  the name of the property (head of column in productrs.csv)
+ * @param value the value of the property
+ */
+class ProductProperty(id: Int, name: String, value: AJRValue) {
+  def getValue: AJRValue = value
+
+  def getId: Int = id
 }
 
-class Product(id: Int, name: String, properties: List[ProductProperty]) {
+/**
+ * Product
+ *
+ * Ease manipulation of the product data
+ *
+ * @param id         the id of the product (col 0 of products.csv)
+ * @param name       the name of the product (col 1 if products.csv)
+ * @param properties interesting properties (cols) of the file products.csv
+ */
+class Product(id: Int, name: String, properties: Seq[ProductProperty]) {
   override def toString: String = name + " (" + id.toString + ")"
 
-  def validate(ajrs: List[AJRLimit]): Boolean = {
-    val is_inferior_to_max = for {
-      ajr <- ajrs
-      value <- properties
-      if ajr.get_id == value.get_id
-      result = value.get_value <= ajr.get_maximum
+  def getId: Int = id
 
-    } yield result
-
-    val tab = if (ajrs.length == 3) {
-      val is_superior_to_min = for {
-        ajr <- ajrs
-        value <- properties
-        if ajr.get_id == value.get_id
-        result = value.get_value >= ajr.get_minimum
-      } yield result
-      (is_superior_to_min zip is_inferior_to_max) map { case (a, b) => a && b }
-    } else {
-      is_inferior_to_max
-    }
-
-    tab.forall(i => i)
-  }
+  def getProperties: Seq[ProductProperty] = properties
 }
 
+// </editor-fold>
+//<editor-fold desc="AJR">
 
-case class AJRUnit(name: String) {
-}
+/**
+ * Case class to allow pattern matching on different units
+ *
+ * @param name the name of the unit (g, mg, µg)
+ */
+case class AJRUnit(name: String)
 
-
+/**
+ * The combination of a value and a unit
+ *
+ * The big idea is to allow comparison and addition over values that have different unit in the csv files.
+ *
+ * @param value the value
+ * @param unit  the unit
+ */
 class AJRValue(value: Double, unit: AJRUnit) {
   override def toString: String = value + " (" + unit.name + ")"
 
-  def normalized_value: Double = {
+  /**
+   * Return the normalized value (base unit is gram [g])
+   *
+   * @return the value converted in gram
+   */
+  def normalizedValue: Double = {
     val factor: Double = unit match {
       case AJRUnit("g") => 1
       case AJRUnit("mg") => 0.0001
@@ -114,44 +226,67 @@ class AJRValue(value: Double, unit: AJRUnit) {
   }
 
   def <=(other: AJRValue): Boolean = {
-    this.normalized_value <= other.normalized_value
+    this.normalizedValue <= other.normalizedValue
   }
 
   def <(other: AJRValue): Boolean = {
-    this.normalized_value < other.normalized_value
+    this.normalizedValue < other.normalizedValue
   }
 
   def >=(other: AJRValue): Boolean = {
-    this.normalized_value >= other.normalized_value
+    this.normalizedValue >= other.normalizedValue
   }
 
   def >(other: AJRValue): Boolean = {
-    this.normalized_value > other.normalized_value
+    this.normalizedValue > other.normalizedValue
   }
 
   def ==(other: AJRValue): Boolean = {
-    this.normalized_value == other.normalized_value
+    this.normalizedValue == other.normalizedValue
   }
 
+  def +(other: AJRValue): AJRValue = {
+    new AJRValue(this.normalizedValue + other.normalizedValue, AJRUnit("g"))
+  }
 }
 
-class AJRLimit(name: String, recommended_value: AJRValue, minimum: AJRValue, maximum: AJRValue, id: Int) {
-  override def toString: String = name + "(" + id + ")" + " [" + minimum + " < " + recommended_value + " < " + maximum + "]"
+/**
+ * Representation of the data contained in the `ajr.csv` file
+ *
+ * @param name             the name of the element (vitamine, iron, ...)
+ * @param recommendedValue the recommended value for this element
+ * @param minimum          the minimum value for this element
+ * @param maximum          the maximum value for this element
+ * @param id               the column of the corresponding property in the `products.csv` file
+ */
+class AJRLimit(name: String, recommendedValue: AJRValue, minimum: AJRValue, maximum: AJRValue, id: Int) {
+  override def toString: String = name + "(" + id + ")" + " [" + minimum + " < " + recommendedValue + " < " + maximum + "]"
 
-  def get_id: Int = id
+  def getId: Int = id
 
-  def get_name: String = name
+  def getName: String = name
 
-  def get_recommended: AJRValue = recommended_value
+  def getRecommended: AJRValue = recommendedValue
 
-  def get_minimum: AJRValue = minimum
+  def getMinimum: AJRValue = minimum
 
-  def get_maximum: AJRValue = maximum
+  def getMaximum: AJRValue = maximum
 }
 
+// </editor-fold>
+//<editor-fold desc="EXTRACTORS">
 
+/**
+ * Object that is responsible for the extraction of data from the csv files
+ */
 object GastroExtractor {
-  def get_unit_from_product_col_id(id: Int): AJRUnit = {
+  /**
+   * Get the correspondence between the index of the column of the `products.csv` file and the unit
+   *
+   * @param id the column index
+   * @return the AJRUnit of that column
+   */
+  def getUnitFromProductColId(id: Int): AJRUnit = {
     id match {
       case 14 => AJRUnit("µg")
       case 21 => AJRUnit("mg")
@@ -177,37 +312,48 @@ object GastroExtractor {
     }
   }
 
-  def extract_products(): List[Product] = {
-    val product_file = scala.io.Source.fromFile("data/products.csv")
+  /**
+   * Logic to extract the list of product from the `product.csv` file
+   *
+   * @return
+   */
+  def extractProduct(): Seq[Product] = {
+    val productFile = scala.io.Source.fromFile("data/products.csv")
 
     (for {
-      product_line <- product_file.getLines.drop(1)
-      product_cols = product_line.split(";")
+      productLine <- productFile.getLines.drop(1)
+      productCols = productLine.split(";")
       tab = for {
-        ajr <- extract_ajr()
-      } yield new ProductProperty(ajr.get_id, ajr.get_name, new AJRValue(product_cols(ajr.get_id).trim.toDouble, this.get_unit_from_product_col_id(ajr.get_id)))
+        ajr <- extractAjr()
+      } yield new ProductProperty(ajr.getId, ajr.getName, new AJRValue(productCols(ajr.getId).trim.toDouble, this.getUnitFromProductColId(ajr.getId)))
 
 
     } yield new Product(
-      product_cols(0).toInt,
-      product_cols(1),
+      productCols(0).toInt,
+      productCols(1),
       tab)).toList
   }
 
-  def extract_ajr(): List[AJRLimit] = {
-    val ajr_file = scala.io.Source.fromFile("data/ajr.csv")
+  /**
+   * Logic to extract the AJRLimit from the `ajr.csv` file
+   *
+   * @return
+   */
+  def extractAjr(): Seq[AJRLimit] = {
+    val ajrFile = scala.io.Source.fromFile("data/ajr.csv")
     (for {
-      ajr_line <- ajr_file.getLines.drop(1)
-      if !ajr_line.contains("-") // remove lines that contains missing values
-      ajr_cols = ajr_line.split(";")
-      unit = AJRUnit(ajr_cols(1).trim)
+      ajrLine <- ajrFile.getLines.drop(1)
+      if !ajrLine.contains("-") // remove lines that contains missing values
+      ajrCols = ajrLine.split(";")
+      unit = AJRUnit(ajrCols(1).trim)
     } yield new AJRLimit(
-      ajr_cols(0).trim,
-      new AJRValue(ajr_cols(3).trim.toDouble, unit),
-      new AJRValue(ajr_cols(4).trim.toDouble, unit),
-      new AJRValue(ajr_cols(6).trim.toDouble, unit),
-      ajr_cols(8).trim.toInt)
+      ajrCols(0).trim,
+      new AJRValue(ajrCols(3).trim.toDouble, unit),
+      new AJRValue(ajrCols(4).trim.toDouble, unit),
+      new AJRValue(ajrCols(6).trim.toDouble, unit),
+      ajrCols(8).trim.toInt)
       ).toList
   }
 }
 
+// </editor-fold>
