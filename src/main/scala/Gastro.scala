@@ -1,5 +1,10 @@
 import scala.util.Random
 
+// objective : use inheritance
+class CustomException(private val message: String = "",
+                      private val cause: Throwable = None.orNull
+                     ) extends Exception(message, cause)
+
 
 object Main {
 
@@ -62,6 +67,7 @@ class Menu(products: Seq[Product]) {
    * @return
    */
   def totalProperties: Seq[ProductProperty] = {
+    // objective : use high level methods
     products
       .flatMap(_.getProperties)
       .groupBy(_.getId)
@@ -69,10 +75,12 @@ class Menu(products: Seq[Product]) {
         case (id: Int, properties: Seq[ProductProperty]) => new ProductProperty(
           id,
           "unnecessary",
+          // objective : use anonymous function
           // sum the AJRValues of properties with fold
           properties.map(_.getValue).fold(new AJRValue(0, AJRUnit("g")))(_ + _)
         )
       }
+      // objective : discover immutable data structure
       .toList
   }
 
@@ -102,6 +110,7 @@ class Menu(products: Seq[Product]) {
    * @return true if its ok, false otherwise
    */
   def validAjr(ajrs: Seq[AJRLimit]): Boolean = {
+    // objective : use for comprehension
     (for {
       ajr <- ajrs
       property <- totalProperties
@@ -130,6 +139,7 @@ class MenuComposer(products: Seq[Product], ajrs: Seq[AJRLimit]) {
    * @return lazy evaluated list of the combinations of n product from the given list
    */
   def allProductCombinations(n: Int): LazyList[Menu] = {
+    // objective : abuse for comprehension
     LazyList.from(for {
       m <- Random.shuffle(products).combinations(n)
     } yield new Menu(m))
@@ -142,6 +152,7 @@ class MenuComposer(products: Seq[Product], ajrs: Seq[AJRLimit]) {
    * @return lazy evaluated list of menu
    */
   def compose(n: Int): LazyList[Menu] = {
+    // objective : overdose for comprehension
     for {
       menu <- allProductCombinations(n)
       if menu.validate(ajrs)
@@ -188,6 +199,7 @@ class Product(id: Int, name: String, properties: Seq[ProductProperty]) {
 // </editor-fold>
 //<editor-fold desc="AJR">
 
+// objective : define case class
 /**
  * Case class to allow pattern matching on different units
  *
@@ -195,6 +207,7 @@ class Product(id: Int, name: String, properties: Seq[ProductProperty]) {
  */
 case class AJRUnit(name: String)
 
+// objective : define a class
 /**
  * The combination of a value and a unit
  *
@@ -212,6 +225,7 @@ class AJRValue(value: Double, unit: AJRUnit) {
    * @return the value converted in gram
    */
   def normalizedValue: Double = {
+    // objective : use pattern matching on case class
     val factor: Double = unit match {
       case AJRUnit("g") => 1
       case AJRUnit("mg") => 0.0001
@@ -219,7 +233,7 @@ class AJRValue(value: Double, unit: AJRUnit) {
       case AJRUnit("μg") => 0.0000001 // U+03BC : GREEK SMALL LETTER MU (used by some data c/p from internet)
       case _ =>
         println("The error comes from the " + unit + " unit")
-        throw new Exception("unit not managed")
+        throw new CustomException("unit not managed")
     }
     value * factor
   }
