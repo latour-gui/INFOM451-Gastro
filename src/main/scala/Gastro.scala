@@ -70,7 +70,7 @@ class Menu(products: Seq[Product]) {
           id,
           "unnecessary",
           // sum the AJRValues of properties with fold
-          properties.map(_.getValue).fold(new AJRValue(0, AJRUnit("g"))) { case (acc, elem) => acc + elem }
+          properties.map(_.getValue).fold(new AJRValue(0, AJRUnit("g")))(_ + _)
         )
       }
       .toList
