@@ -73,7 +73,6 @@ class Menu(products: Seq[Product]) {
           properties.map(_.getValue).fold(new AJRValue(0, AJRUnit("g"))) { case (acc, elem) => acc + elem }
         )
       }
-
       .toList
   }
 
@@ -99,16 +98,16 @@ class Menu(products: Seq[Product]) {
   /**
    * Check if the addition of all the products in the menu do respect the Daily Recommended Intake
    *
-   * @param ajrs The list of the AJRLimit wich determine the daily recommended intake
+   * @param ajrs The list of the AJRLimit which determine the daily recommended intake
    * @return true if its ok, false otherwise
    */
   def validAjr(ajrs: Seq[AJRLimit]): Boolean = {
     (for {
       ajr <- ajrs
-      value <- totalProperties
-      if ajr.getId == value.getId
-      v = value.getValue
-      result = v <= ajr.getMaximum && v >= ajr.getMinimum
+      property <- totalProperties
+      if ajr.getId == property.getId
+      v = property.getValue
+      result = v < ajr.getMaximum && v > ajr.getMinimum
     } yield result).forall(i => i)
   }
 }
@@ -160,7 +159,7 @@ class MenuComposer(products: Seq[Product], ajrs: Seq[AJRLimit]) {
  * ty captain obvious, its a class
  *
  * @param id    the number of the column of the property in the `products.csv`
- * @param name  the name of the property (head of column in productrs.csv)
+ * @param name  the name of the property (head of column in products.csv)
  * @param value the value of the property
  */
 class ProductProperty(id: Int, name: String, value: AJRValue) {
@@ -253,7 +252,7 @@ class AJRValue(value: Double, unit: AJRUnit) {
 /**
  * Representation of the data contained in the `ajr.csv` file
  *
- * @param name             the name of the element (vitamine, iron, ...)
+ * @param name             the name of the element (vitamin, iron, ...)
  * @param recommendedValue the recommended value for this element
  * @param minimum          the minimum value for this element
  * @param maximum          the maximum value for this element
