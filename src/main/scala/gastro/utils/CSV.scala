@@ -1,3 +1,7 @@
+package gastro.utils
+
+import gastro.utils.errors.{HeaderException, StringToCharParsingException}
+
 import scala.util.Try
 
 abstract class CsvType {
@@ -15,7 +19,7 @@ case object CsvStr extends CsvType {
 
 case object CsvChar extends CsvType {
   override def canParse(str: String): String = if (str.toCharArray.length != 1) {
-    throw new Exception("more than one char in the string")
+    throw new StringToCharParsingException("more than one char in the string")
   } else {
     str.toCharArray.head.toString
   }
@@ -25,7 +29,7 @@ case object CsvFloat extends CsvType {
   override def canParse(str: String): String = str.toDouble.toString
 }
 
-class Utils {
+object CSV {
 
   def validateCsvType(str: String, option: Option[Seq[CsvType]], i: Int): String = {
     option match {
@@ -36,19 +40,20 @@ class Utils {
 
 
   /**
+   * Extract information from a CSV file.
+   * The output format is a sequence of Map(key,value) as (column name, value).
+   * Each Map is a row.
    *
-   *
-   *
-   * @param file_path
-   * @param delimiter
-   * @param containsHeader
-   * @param columnTypes
+   * @param file_path      the csv file that needs to be extracted
+   * @param delimiter      the delimiter of the file (default = ";")
+   * @param containsHeader whether the first line of the file is for the header
+   * @param columnTypes    the column types for additional robustness
    * @return
    */
-  def csvExtract(file_path: String,
-                 delimiter: String = ";",
-                 containsHeader: Boolean = true,
-                 columnTypes: Option[Seq[CsvType]] = None)
+  def extract(file_path: String,
+              delimiter: String = ";",
+              containsHeader: Boolean = true,
+              columnTypes: Option[Seq[CsvType]] = None)
   : Try[Seq[Map[String, String]]]
   = Try {
     // get the file as a manipulable object
@@ -63,18 +68,13 @@ class Utils {
     }).map(line => line.split(delimiter).map(r => r.trim))
 
     // check the uniqueness of the column names in the header
-    header match {
-      case Some(h) =>
-        if (h.length != h.distinct.length) {
-          throw new Exception("The header contains non unique column name")
-        }
+    if (header.isDefined && header.get.length != header.get.distinct.length) {
+      throw new HeaderException("The header contains non unique column name")
     }
 
     // check the consistency of number of columns in header and `columnTypes` parameter
-    (header, columnTypes) match {
-      case (Some(h), Some(ct)) => if (h.length != ct.length) {
-        throw new Exception("The header and the param `columnTypes` do not contains the same number of columns")
-      }
+    if ((header.isDefined && columnTypes.isDefined) && header.get.length != columnTypes.get.length) {
+      throw new HeaderException("The header and the param `columnTypes` do not contains the same number of columns")
     }
 
     // set up the count of lines to header's length or to column types length
@@ -82,13 +82,14 @@ class Utils {
     // so this counter will be initialized while parsing first data line of file
     var count = header.map(_.length).orElse(columnTypes.map(_.length))
 
+    // objective : master for comprehension
     val data = source
       // get the lines of the file
       .getLines()
       // zip them with an index to manipulate tuples (line, index)
       .zipWithIndex
       // remove first line if there was a header
-      .filter { case (_, n) => !containsHeader || n > 0 }
+      //      .filter { case (_, n) => !containsHeader || n > 0 }
       .map { case (line, line_number) =>
         // take every column
         val cols = line.split(delimiter)
@@ -113,12 +114,9 @@ class Utils {
 
     // close the source
     source.close()
+
     // return data
     data
-  } // end of `csvExtract` function
-} // end of `Utils` class
+  }
+}
 
-// objective : use inheritance
-class CustomException(private val message: String = "",
-                      private val cause: Throwable = None.orNull
-                     ) extends Exception(message, cause)
