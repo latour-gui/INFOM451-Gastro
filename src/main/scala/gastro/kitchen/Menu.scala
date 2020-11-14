@@ -8,7 +8,7 @@ import gastro.kitchen.food.{Product, ProductProperty, ajr}
  *
  * @param products the products contained in the menu
  */
-class Menu(products: Seq[Product]) {
+class Menu(val products: Seq[Product]) {
   override def toString: String = "The menu is composed by the following elements :\n\t- " + products.map(_.toString).mkString("\n\t- ")
 
   /**
@@ -26,7 +26,7 @@ class Menu(products: Seq[Product]) {
       .map {
         case (id: Int, properties: Seq[ProductProperty]) => new ProductProperty(
           id,
-          "unnecessary",
+          properties.head.name, // those are all the same properties (because they have been grouped by id)
           // objective : use anonymous function
           // sum the ajr.Values of properties with fold
           properties.map(_.value).fold(new ajr.Value(0, ajr.Unit("g")))(_ + _)

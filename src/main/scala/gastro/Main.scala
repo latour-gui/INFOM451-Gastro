@@ -1,6 +1,14 @@
 package gastro
 
-import gastro.kitchen.MasterChef
+import akka.actor.{ActorSystem, Props}
+import akka.pattern.ask
+import akka.util.Timeout
+import gastro.kitchen._
+import gastro.kitchen.employees.Coq
+
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
+import scala.util.Success
 
 object Main {
 
@@ -17,13 +25,24 @@ object Main {
   def main(args: Array[String]) {
     val productPath = "data/products.csv" // todo : if is set args['inputpath']
     val ajrPath = "data/ajr.csv" // todo : if isset args[ajr]
-    val menuComposer = new MasterChef(productPath, ajrPath)
 
-    val n: Int = askForInt("How many items do you want in your menu ?")
-    for (meal <- menuComposer.compose(n)) {
-      println(meal)
-      scala.io.StdIn.readLine("Not satisfied? Hit any key to try another random menu composition out!")
+    var name: String = ""
+    while (true) {
+      name = askForString("Welcome at our Gastro kitchen.\nWhich name should I use for your reservation ?")
+      askForMenu(name)
     }
+    //    val menuComposer = (for {
+    //      ajrs <- kitchen.food.rememberAJR(ajrPath)
+    //      products <- kitchen.food.lookForProduct(productPath, ajrs)
+    //    } yield new Coq(products, ajrs)) match {
+    //      case Success(chef) => chef
+    //      case Failure(exception) =>
+    //        print("We tracked a problem and this is a smooth management of this issue")
+    //        print(exception.getMessage)
+    //        system.terminate()
+    //    }
+    //
+
   }
 
   /**
@@ -37,9 +56,37 @@ object Main {
   def askForInt(message: String): Int = {
     var input: Option[Int] = None
     while (input.isEmpty) {
-      input = scala.io.StdIn.readLine(message).toIntOption
+      input = scala.io.StdIn.readLine(message + "\n\t> ").toIntOption
     }
     input.get
   }
 
+  def askForString(message: String): String = {
+    scala.io.StdIn.readLine(message + "\n\t> ")
+  }
+
+  def askForMenu(reservationName: String): Unit = {
+    val n: Int = askForInt("Hello " + reservationName + ", please have a seat.\nHow many items do you want in your menu ?")
+
+    val system = ActorSystem("kitchen")
+    val coq = system.actorOf(Props[Coq], "Coq")
+    implicit val timeout: Timeout = Timeout(10.seconds)
+    val menu = coq ? NewMenuMessage(n)
+    promptMessage("A menu has been commanded for the name '" + reservationName + "'.")
+
+    menu.onComplete {
+      case Success(NewMenuResponse(Some(menu))) =>
+        promptMessage("The '" + reservationName + "' menu is prepared\n\n" + menu.toString)
+      case Success(NewMenuResponse(None)) =>
+        print("The '" + reservationName + "' menu  is none")
+    }
+  }
+
+  def promptMessage(message: String): Unit = {
+    val separator = "+------------- - - - "
+
+    print("\n" + separator + "(message from kitchen)" + "\n" +
+      message.split("\n").map(m => "| " + m).mkString("\n") +
+      "\n" + separator + "\n")
+  }
 }
