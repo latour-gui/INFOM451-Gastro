@@ -23,26 +23,11 @@ object Main {
    * @param args The parameters of the program
    */
   def main(args: Array[String]) {
-    val productPath = "data/products.csv" // todo : if is set args['inputpath']
-    val ajrPath = "data/ajr.csv" // todo : if isset args[ajr]
-
     var name: String = ""
     while (true) {
       name = askForString("Welcome at our Gastro kitchen.\nWhich name should I use for your reservation ?")
       askForMenu(name)
     }
-    //    val menuComposer = (for {
-    //      ajrs <- kitchen.food.rememberAJR(ajrPath)
-    //      products <- kitchen.food.lookForProduct(productPath, ajrs)
-    //    } yield new Coq(products, ajrs)) match {
-    //      case Success(chef) => chef
-    //      case Failure(exception) =>
-    //        print("We tracked a problem and this is a smooth management of this issue")
-    //        print(exception.getMessage)
-    //        system.terminate()
-    //    }
-    //
-
   }
 
   /**
@@ -72,13 +57,13 @@ object Main {
     val coq = system.actorOf(Props[Coq], "Coq")
     implicit val timeout: Timeout = Timeout(10.seconds)
     val menu = coq ? NewMenuMessage(n)
-    promptMessage("A menu has been commanded for the name '" + reservationName + "'.")
+    promptMessage("A menu has been ordered for the name '" + reservationName + "'.")
 
     menu.onComplete {
       case Success(NewMenuResponse(Some(menu))) =>
         promptMessage("The '" + reservationName + "' menu is prepared\n\n" + menu.toString)
       case Success(NewMenuResponse(None)) =>
-        print("The '" + reservationName + "' menu  is none")
+        promptMessage("The kitchen was not able to produce a decent menu for '" + reservationName + "'")
     }
   }
 

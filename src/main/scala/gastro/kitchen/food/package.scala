@@ -5,8 +5,13 @@ import gastro.utils.CSV
 import scala.util.Try
 
 package object food {
-  def lookForProduct(filePath: String, ajrs: Seq[ajr.Limit]): Try[Seq[Product]] =
-    CSV.extract(filePath).map(seqMaps => for {
+
+  def productsPath: String = this.getClass.getResource("./resources/products.csv").getPath
+
+  def ajrsPath: String = this.getClass.getResource("./resources/ajr.csv").getPath
+
+  def lookForProducts(ajrs: Seq[ajr.Limit]): Try[Seq[Product]] =
+    CSV.extract(productsPath).map(seqMaps => for {
       headerValueMap <- seqMaps
 
       ajrsAsProductProperties = for {
@@ -21,8 +26,8 @@ package object food {
       ajrsAsProductProperties))
 
 
-  def rememberAJR(filePath: String): Try[Seq[ajr.Limit]] =
-    CSV.extract(filePath).map(seqMaps => for {
+  def rememberAJR(): Try[Seq[ajr.Limit]] =
+    CSV.extract(ajrsPath).map(seqMaps => for {
       headerValueMap <- seqMaps
 
       if !headerValueMap.values.exists(_ == "-") // remove lines that contains missing values

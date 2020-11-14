@@ -3,6 +3,7 @@ package gastro.kitchen.employees
 import akka.actor.{Actor, ActorRef, Props}
 import akka.pattern.ask
 import akka.util.Timeout
+import gastro.Main.promptMessage
 import gastro.kitchen._
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -25,9 +26,9 @@ class Coq() extends Actor {
   def receive: Receive = {
     case NewMenuMessage(n) =>
       this.maxProductInMenu = n
-      this.assistant = context.system.actorOf(Props[Assistant], "Assistant")
+      this.assistant = context.actorOf(Props[Assistant], "Assistant")
       this.client = sender()
-      val specialist = context.system.actorOf(Props[SpecialistManager], "Specialist")
+      val specialist = context.actorOf(Props[SpecialistManager], "Specialist")
 
       // objective : (bonus) use the ask pattern
       implicit val timeout: Timeout = Timeout(1.seconds)
@@ -36,21 +37,32 @@ class Coq() extends Actor {
       // objective : manipulate future via callback
       coreItemFuture.onComplete {
         case Success(CoreProductResponse(coreItem)) =>
-          this.menu = new Menu(Seq(coreItem))
-          askForNextProductToSpecialist(specialist, this.menu)
+          coreItem match {
+            case Some(item) =>
+              this.menu = new Menu(Seq(item))
+              askForNextProductToSpecialist(specialist, this.menu)
+            case None =>
+              sendEmptyMenu()
+          }
+
 
         case Failure(exception) =>
-          print(exception.getMessage)
-          this.client ! NewMenuResponse(None)
+          promptMessage(exception.getMessage)
+          sendEmptyMenu()
       }
 
 
     //    case CoreProductResponse(p) => print("not needed because this case is managed through the ask pattern")
 
 
-    case OtherIngredientResponse(p) =>
-      this.menu = new Menu(this.menu.products :+ p)
-      askForNextProductToSpecialist(sender(), this.menu)
+    case OtherIngredientResponse(product) =>
+      product match {
+        case Some(p) => this.menu = new Menu(this.menu.products :+ p)
+          askForNextProductToSpecialist(sender(), this.menu)
+        case None =>
+          promptMessage("The specialists do not know which ingredient to add...")
+          sendEmptyMenu()
+      }
 
 
     case QuantityResponse(what) =>
@@ -67,38 +79,9 @@ class Coq() extends Actor {
     }
   }
 
+  def sendEmptyMenu(): Unit = this.client ! NewMenuResponse(None)
+
   def validate(): Unit = {
     this.assistant ! QuantityMessage(this.menu)
   }
-
-  //
-  //  /**
-  //   * Generate all the possible combinations of n products from all of those at our disposition
-  //   *
-  //   * It is really important that the return type is LazyList instead of List.
-  //   * Because if the List was evaluated at this function call, it's most likely to block the threat for a long time
-  //   *
-  //   * @param n the number of products that should be in the combination
-  //   * @return lazy evaluated list of the combinations of n product from the given list
-  //   */
-  //  def allProductCombinations(n: Int): LazyList[Menu] = {
-  //    // objective : abuse for comprehension
-  //    LazyList.from(for {
-  //      m <- Random.shuffle(this.products).combinations(n)
-  //    } yield new Menu(m))
-  //  }
-  //
-  //  /**
-  //   * Compose a lazy evaluated list of menu that do respect the daily recommended intake
-  //   *
-  //   * @param n the number of product in the menu
-  //   * @return lazy evaluated list of menu
-  //   */
-  //  def compose(n: Int): LazyList[Menu] = {
-  //    // objective : overdose for comprehension
-  //    for {
-  //      menu <- allProductCombinations(n)
-  //      if menu.validate(this.ajrs)
-  //    } yield menu
-  //  }
 }

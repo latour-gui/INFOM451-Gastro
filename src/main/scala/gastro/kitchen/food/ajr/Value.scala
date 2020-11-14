@@ -56,4 +56,8 @@ class Value(value: Double, unit: Unit) {
   def +(other: Value): Value = {
     new Value(this.normalizedValue + other.normalizedValue, Unit("g"))
   }
+
+  def -(other: Value): Value = {
+    new Value(this.normalizedValue - other.normalizedValue, Unit("g"))
+  }
 }

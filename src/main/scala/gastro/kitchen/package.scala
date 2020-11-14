@@ -14,11 +14,11 @@ package object kitchen {
 
   case class CoreProductMessage() extends ProtocolMessage
 
-  case class CoreProductResponse(p: Product) extends ProtocolMessage
+  case class CoreProductResponse(p: Option[Product]) extends ProtocolMessage
 
   case class OtherIngredientMessage(m: Menu) extends ProtocolMessage
 
-  case class OtherIngredientResponse(p: Product) extends ProtocolMessage
+  case class OtherIngredientResponse(p: Option[Product]) extends ProtocolMessage
 
   case class QuantityMessage(m: Menu) extends ProtocolMessage
 

@@ -9,7 +9,9 @@ import gastro.kitchen.food.{Product, ProductProperty, ajr}
  * @param products the products contained in the menu
  */
 class Menu(val products: Seq[Product]) {
-  override def toString: String = "The menu is composed by the following elements :\n\t- " + products.map(_.toString).mkString("\n\t- ")
+  override def toString: String = "The menu is composed by the following elements :\n\t- " + products.groupBy(_.id).map({
+    case (id: Int, products: Seq[Product]) => products.length + " " + products.head.name + " (" + id + ")"
+  }).mkString("\n\t- ")
 
   /**
    * Sum the value of each product properties
