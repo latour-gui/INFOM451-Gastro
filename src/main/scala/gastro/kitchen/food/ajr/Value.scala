@@ -27,7 +27,7 @@ class Value(value: Double, unit: Unit) {
       case Unit("µg") => 0.0000001 // U+00B5 : MICRO SIGN (used when I type a "mu" with my keyboard)
       case Unit("μg") => 0.0000001 // U+03BC : GREEK SMALL LETTER MU (used by some data c/p from internet)
       case _ =>
-        println("The error comes from the " + unit + " unit")
+        //        promptMessage("The error comes from the " + unit + " unit")
         throw new CustomException("unit not managed")
     }
     value * factor

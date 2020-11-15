@@ -13,8 +13,6 @@ import scala.util.{Failure, Success}
 /**
  * The MasterChef class is responsible for generating combinations of products and sending the valid ones as a LazyList
  *
- * @param productFilePath The file containing products at our disposition to compose menus
- * @param ajrFilePath     The file containing the gastro.kitchen.food.ajr.Limit that we use to validate the menus
  */
 //products: Seq[Product], ajrs: Seq[ajr.Limit]
 class Coq() extends Actor {
@@ -65,10 +63,10 @@ class Coq() extends Actor {
       }
 
 
-    case QuantityResponse(what) =>
-      this.client ! NewMenuResponse(Some(this.menu))
+    case QuantityResponse(finalMenu) =>
+      this.client ! NewMenuResponse(Some(finalMenu))
 
-    case _ => println("nique")
+    case _ => promptMessage("A message was not interpreted correctly by the Coq")
   }
 
   def askForNextProductToSpecialist(specialist: ActorRef, menu: Menu): Unit = {

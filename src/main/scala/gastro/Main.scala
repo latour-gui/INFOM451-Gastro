@@ -25,7 +25,7 @@ object Main {
   def main(args: Array[String]) {
     var name: String = ""
     while (true) {
-      name = askForString("Welcome at our Gastro kitchen.\nWhich name should I use for your reservation ?")
+      name = askForString("Welcome at our Gastro kitchen.\nWhich name should I use for your order ?")
       askForMenu(name)
     }
   }
@@ -50,20 +50,20 @@ object Main {
     scala.io.StdIn.readLine(message + "\n\t> ")
   }
 
-  def askForMenu(reservationName: String): Unit = {
-    val n: Int = askForInt("Hello " + reservationName + ", please have a seat.\nHow many items do you want in your menu ?")
+  def askForMenu(orderName: String): Unit = {
+    val n: Int = askForInt("Hello " + orderName + ", please have a seat.\nHow many items do you want in your menu ?")
 
     val system = ActorSystem("kitchen")
     val coq = system.actorOf(Props[Coq], "Coq")
     implicit val timeout: Timeout = Timeout(10.seconds)
     val menu = coq ? NewMenuMessage(n)
-    promptMessage("A menu has been ordered for the name '" + reservationName + "'.")
+    promptMessage("A menu has been ordered for the name '" + orderName + "'.")
 
     menu.onComplete {
       case Success(NewMenuResponse(Some(menu))) =>
-        promptMessage("The '" + reservationName + "' menu is prepared\n\n" + menu.toString)
+        promptMessage("The '" + orderName + "' menu is prepared\n\n" + menu.toString)
       case Success(NewMenuResponse(None)) =>
-        promptMessage("The kitchen was not able to produce a decent menu for '" + reservationName + "'")
+        promptMessage("The kitchen was not able to produce a decent menu for '" + orderName + "'")
     }
   }
 

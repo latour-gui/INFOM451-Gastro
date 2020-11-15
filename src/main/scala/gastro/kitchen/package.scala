@@ -10,7 +10,7 @@ package object kitchen {
 
   case class NewMenuMessage(n: Integer) extends ProtocolMessage
 
-  case class NewMenuResponse(m: Option[Menu]) extends ProtocolMessage
+  case class NewMenuResponse(m: Option[QuantifiedMenu]) extends ProtocolMessage
 
   case class CoreProductMessage() extends ProtocolMessage
 
@@ -22,7 +22,7 @@ package object kitchen {
 
   case class QuantityMessage(m: Menu) extends ProtocolMessage
 
-  case class QuantityResponse(what: String) extends ProtocolMessage
+  case class QuantityResponse(m: QuantifiedMenu) extends ProtocolMessage
 
 
 }

@@ -27,3 +27,6 @@ class Product(val id: Int, val name: String, properties: Seq[ProductProperty]) {
  * @param value the value of the property
  */
 class ProductProperty(val id: Int, val name: String, val value: ajr.Value)
+
+
+case class QuantifiedProduct(product: Product, portion: String, weight: String)

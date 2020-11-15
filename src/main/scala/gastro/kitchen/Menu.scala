@@ -1,6 +1,6 @@
 package gastro.kitchen
 
-import gastro.kitchen.food.{Product, ProductProperty, ajr}
+import gastro.kitchen.food.{Product, ProductProperty, QuantifiedProduct, ajr}
 
 /**
  * The `gastro.menu.Menu` class contains computing logic that allows one to know if the menu is valid in the point of view of the
@@ -73,4 +73,11 @@ class Menu(val products: Seq[Product]) {
       result = v < ajr.maximum && v > ajr.minimum
     } yield result).forall(i => i)
   }
+}
+
+case class QuantifiedMenu(products: Seq[QuantifiedProduct]) {
+  override def toString: String = "The menu is composed by the following elements :\n\t- " +
+    products
+      .map(qp => qp.portion + " of " + qp.product.name + " (" + qp.weight + "g)")
+      .mkString("\n\t- ")
 }

@@ -1,6 +1,6 @@
 package gastro.kitchen
 
-import gastro.utils.CSV
+import gastro.utils._
 
 import scala.util.Try
 
@@ -9,6 +9,8 @@ package object food {
   def productsPath: String = this.getClass.getResource("./resources/products.csv").getPath
 
   def ajrsPath: String = this.getClass.getResource("./resources/ajr.csv").getPath
+
+  def portionsPath: String = this.getClass.getResource("./resources/portions.csv").getPath
 
   def lookForProducts(ajrs: Seq[ajr.Limit]): Try[Seq[Product]] =
     CSV.extract(productsPath).map(seqMaps => for {
@@ -48,4 +50,14 @@ package object food {
       new ajr.Value(minimumValue, unit),
       new ajr.Value(maximumValue, unit),
       id))
+
+  def lookForPortions(): Try[Seq[(Integer, String, String)]] = {
+    val colTypes = Seq(CsvInt, CsvStr, CsvStr, CsvStr, CsvStr, CsvStr, CsvStr, CsvStr, CsvStr)
+    CSV.extract(portionsPath, columnTypes = Some(colTypes)).map(seqMaps => for {
+      headerValueMap <- seqMaps
+      productCode <- headerValueMap.get("Food code").flatMap(_.trim.toIntOption)
+      portionDescription <- headerValueMap.get("Portion description")
+      weight <- headerValueMap.get("Portion weight (g)")
+    } yield (productCode, portionDescription, weight))
+  }
 }

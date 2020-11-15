@@ -45,7 +45,7 @@ class SpecialistManager() extends Actor {
     case OtherIngredientMessage(m) =>
       sender ! OtherIngredientResponse(consultSpecialistsForNextIngredient(m))
 
-    case _ => println("Specialist received an incomprehensible message")
+    case _ => promptMessage("Specialist received an incomprehensible message")
   }
 
 
