@@ -94,11 +94,11 @@ class SpecialistManager() extends Actor {
     if (this.specificSpecialistResponseCount == this.getSpecialistRefList.length) {
       // reset every memorized information
       this.specificSpecialistResponseCount = 0
-      this.specialistRefList = Nil
       // objective : (bonus) manually dispose of child actors
       for (s <- this.getSpecialistRefList) {
         context.stop(s)
       }
+      this.specialistRefList = Nil
 
       coq.get ! OtherIngredientResponse(this.bestProductSoFar.map(_._2))
       // of course the best product have to be reset after being sent
