@@ -80,6 +80,7 @@ object Main {
       case Success(NewMenuResponse(None)) =>
         promptMessage("The kitchen was not able to produce a decent menu for '" + orderName + "'")
       case Failure(exception) => promptMessage(exception.getMessage)
+      case _ => promptMessage("Prevent warning : now the match is exhaustive")
     }
   }
 

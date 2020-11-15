@@ -51,6 +51,7 @@ class Coq() extends Actor {
         case Failure(exception) =>
           promptMessage(exception.getMessage)
           sendEmptyMenu()
+        case _ => promptMessage("Prevent warning : now the match is exhaustive")
       }
 
 
@@ -77,8 +78,7 @@ class Coq() extends Actor {
   /**
    * Wrapper to call specialist manager for new product to add in menu
    *
-   * @param specialistManager the actorRef to the specialist manager
-   * @param menu              the menu that is composed right now
+   * @param menu the menu that is composed right now
    */
   def askForNextProductToSpecialist(menu: Menu): Unit = {
     // check if the menu is not already of max size

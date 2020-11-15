@@ -44,6 +44,7 @@ object CSV {
     columnTypes match {
       case Some(tab) =>
         tab(index).canParse(str)
+      case None =>
     }
     str
   }
