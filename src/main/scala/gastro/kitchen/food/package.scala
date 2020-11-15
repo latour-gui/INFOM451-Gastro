@@ -6,11 +6,11 @@ import scala.util.Try
 
 package object food {
 
-  def productsPath: String = this.getClass.getResource("./resources/products.csv").getPath
+  def productsPath: String = "data/products.csv"
 
-  def ajrsPath: String = this.getClass.getResource("./resources/ajr.csv").getPath
+  def ajrsPath: String = "data/ajr.csv"
 
-  def portionsPath: String = this.getClass.getResource("./resources/portions.csv").getPath
+  def portionsPath: String = "data/portions.csv"
 
   /**
    * Extract a Seq[Product] from the products csv file in the resources directory

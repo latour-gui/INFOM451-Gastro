@@ -29,7 +29,7 @@ class SpecialistManager() extends Actor {
         // since the failure of the nested call would have been propagated,
         // it makes no sense to check for case Failure(Failure(e))
         case Failure(exception) => promptMessage(exception.getMessage); Nil
-        case _ => promptMessage("Prevent warning : now the match is exhaustive")
+        case _ => promptMessage("Prevent warning : now the match is exhaustive"); Nil
       }
     }
     this.productList
