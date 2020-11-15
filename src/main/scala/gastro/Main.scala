@@ -68,7 +68,7 @@ object Main {
     val coq = system.actorOf(Props[Coq], "Coq")
 
     // objective : (bonus) ask pattern usage
-    implicit val timeout: Timeout = Timeout(10.seconds)
+    implicit val timeout: Timeout = Timeout(3.seconds)
     val menu = coq ? NewMenuMessage(n)
 
     promptMessage("A menu has been ordered for the name '" + orderName + "'.")

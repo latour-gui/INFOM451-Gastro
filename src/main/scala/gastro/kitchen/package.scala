@@ -20,6 +20,10 @@ package object kitchen {
 
   case class OtherIngredientResponse(p: Option[Product]) extends ProtocolMessage
 
+  case class BestProductMessage(m: Menu, lp: Seq[Product]) extends ProtocolMessage
+
+  case class BestProductResponse(r: Option[(Double, Product)]) extends ProtocolMessage
+
   case class QuantityMessage(m: Menu) extends ProtocolMessage
 
   case class QuantityResponse(m: QuantifiedMenu) extends ProtocolMessage

@@ -31,12 +31,12 @@ class Coq() extends Actor {
   def receive: Receive = {
     case NewMenuMessage(n) =>
       this.maxProductInMenu = n
-      this.assistant = context.actorOf(Props[Assistant], "Assistant")
+      this.assistant = context.actorOf(Props(new Assistant()), "Assistant")
       this.client = sender()
-      val specialist = context.actorOf(Props[SpecialistManager], "Specialist")
+      val specialist = context.actorOf(Props[SpecialistManager], "SpecialistManager")
 
       // objective : (bonus) use the ask pattern
-      implicit val timeout: Timeout = Timeout(1.seconds)
+      implicit val timeout: Timeout = Timeout(2.seconds)
       val coreItemFuture = assistant ? CoreProductMessage
 
       // objective : manipulate future via callback
