@@ -31,11 +31,21 @@ case object CsvFloat extends CsvType {
 
 object CSV {
 
-  def validateCsvType(str: String, option: Option[Seq[CsvType]], i: Int): String = {
-    option match {
+  /**
+   * Check if the `str` given can be parsed as the type given by the `columnTypes(index)` CsvType.
+   *
+   * @param str         the string that have to be parsed
+   * @param columnTypes the list of the column types
+   * @param index       the index of the column that have to be tested
+   * @return the input str
+   * @throws IllegalArgumentException if its not possible to parse the str
+   */
+  def validateCsvType(str: String, columnTypes: Option[Seq[CsvType]], index: Int): String = {
+    columnTypes match {
       case Some(tab) =>
-        tab(i).canParse(str)
+        tab(index).canParse(str)
     }
+    str
   }
 
 
@@ -48,7 +58,7 @@ object CSV {
    * @param delimiter      the delimiter of the file (default = ";")
    * @param containsHeader whether the first line of the file is for the header
    * @param columnTypes    the column types for additional robustness
-   * @return
+   * @return a list of maps containing the column name as key and the value as value
    */
   def extract(file_path: String,
               delimiter: String = ";",

@@ -7,6 +7,12 @@ import gastro.kitchen.food._
 
 import scala.util.{Failure, Random, Success}
 
+/**
+ * The Assistant is responsible for finding the first (core) product
+ * He is also responsible for giving the quantities of the composed menu
+ *
+ * He only interacts with the Coq
+ */
 class Assistant extends Actor {
   override def receive: Receive = {
     case CoreProductMessage =>
@@ -17,6 +23,12 @@ class Assistant extends Actor {
     case _ => promptMessage("Assistant received a incomprehensible message")
   }
 
+  // objective : usage of the Option[T] in a function signature
+  /**
+   * Simply choose a random product in the product list
+   *
+   * @return random product; None if something fails during the fetching of products.
+   */
   def findCoreItem(): Option[Product] = {
     val random = new Random
     (for {
@@ -30,8 +42,15 @@ class Assistant extends Actor {
     }
   }
 
-
+  /**
+   * Use the portions csv file to get information concerning quantities of the products in the given menu
+   * This function will send the result of its calculation to the Coq
+   *
+   * @param menu the menu for which we want the product's quantities
+   * @param coq  the coq actor's ref
+   */
   def calculateAndSendQuantities(menu: Menu, coq: ActorRef): Unit = {
+    // objective : treating a function whose signature is of type Try[T]
     val portions: Seq[(Integer, String, String)] = lookForPortions() match {
       case Success(value) => value
       case Failure(exception) =>

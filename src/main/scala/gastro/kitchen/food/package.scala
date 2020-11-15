@@ -12,6 +12,12 @@ package object food {
 
   def portionsPath: String = this.getClass.getResource("./resources/portions.csv").getPath
 
+  /**
+   * Extract a Seq[Product] from the products csv file in the resources directory
+   *
+   * @param ajrs The different ajrs that are used to extract various interesting product properties
+   * @return a list of the products in the csv file
+   */
   def lookForProducts(ajrs: Seq[ajr.Limit]): Try[Seq[Product]] =
     CSV.extract(productsPath).map(seqMaps => for {
       headerValueMap <- seqMaps
@@ -27,8 +33,12 @@ package object food {
       name,
       ajrsAsProductProperties))
 
-
-  def rememberAJR(): Try[Seq[ajr.Limit]] =
+  /**
+   * Extract a Seq[ajr.Limit] from the ajrs csv file in the resources directory
+   *
+   * @return a list of the ajrs in the csv file
+   */
+  def rememberAJR(): Try[Seq[ajr.Limit]] = {
     CSV.extract(ajrsPath).map(seqMaps => for {
       headerValueMap <- seqMaps
 
@@ -50,7 +60,14 @@ package object food {
       new ajr.Value(minimumValue, unit),
       new ajr.Value(maximumValue, unit),
       id))
+  }
 
+  // objective : signature of function that extract portions is Try[_]
+  /**
+   * Extract portions information from the portions csv file
+   *
+   * @return a list of the portions
+   */
   def lookForPortions(): Try[Seq[(Integer, String, String)]] = {
     val colTypes = Seq(CsvInt, CsvStr, CsvStr, CsvStr, CsvStr, CsvStr, CsvStr, CsvStr, CsvStr)
     CSV.extract(portionsPath, columnTypes = Some(colTypes)).map(seqMaps => for {

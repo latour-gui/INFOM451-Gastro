@@ -33,6 +33,12 @@ package object ajr {
     }
   }
 
+  /**
+   * Get the correspondence between the interesting column id and their column header (from products csv file)
+   *
+   * @param ajrId this id is the same as the column index
+   * @return the column header
+   */
   def getProductColumnNameFromAjrId(ajrId: Int): String = {
     ajrId match {
       case 14 => "Retinol (µg)"
@@ -55,7 +61,7 @@ package object ajr {
       case 45 => "Sodium (mg)"
       case 43 => "Selenium (µg)"
       case 41 => "\"Zinc (mg)\""
-      case _ => throw new Exception("oh no")
+      case _ => throw new Exception("The ajrId '" + ajrId + "' is not found in the product csv file\n(This column index is not interesting)")
     }
   }
 }

@@ -15,10 +15,7 @@ object Main {
   /**
    * Entrypoint of the program.
    *
-   * This will load two files via the corresponding extractors,
-   * then it will ask how many items the user wants in its menu,
-   * then it will propose all the combinations of the products that respects the Recommended daily intake.
-   * Between each combination, the program expect the user to manifest its intention to keep displaying menus.
+   * This will infinitely ask the user his/her name and launch the menu ordering process
    *
    * @param args The parameters of the program
    */
@@ -46,19 +43,37 @@ object Main {
     input.get
   }
 
+  /**
+   * Binding to allow a user to input an string
+   *
+   * @param message The message that will be displayed to the user while waiting for a string
+   * @return The string entered by the user
+   */
   def askForString(message: String): String = {
     scala.io.StdIn.readLine(message + "\n\t> ")
   }
 
+  /**
+   * Interact with the "kitchen" in an actor model fashion.
+   * A menu for the `orderName` is composed by the kitchen
+   *
+   * @param orderName The name of the order
+   */
   def askForMenu(orderName: String): Unit = {
     val n: Int = askForInt("Hello " + orderName + ", please have a seat.\nHow many items do you want in your menu ?")
 
+    // objective : actor model usage
+    // creation of the actor system and initialization of the Coq
     val system = ActorSystem("kitchen")
     val coq = system.actorOf(Props[Coq], "Coq")
+
+    // objective : (bonus) ask pattern usage
     implicit val timeout: Timeout = Timeout(10.seconds)
     val menu = coq ? NewMenuMessage(n)
+
     promptMessage("A menu has been ordered for the name '" + orderName + "'.")
 
+    // objective : Future management
     menu.onComplete {
       case Success(NewMenuResponse(Some(menu))) =>
         promptMessage("The '" + orderName + "' menu is prepared\n\n" + menu.toString)
@@ -67,6 +82,13 @@ object Main {
     }
   }
 
+  /**
+   * Wrapper to pass messages "from the kitchen"
+   *
+   * The message will appear in a box-style in stdout
+   *
+   * @param message the message that needs to be displayed
+   */
   def promptMessage(message: String): Unit = {
     val separator = "+------------- - - - "
 

@@ -33,6 +33,8 @@ class Value(value: Double, unit: Unit) {
     value * factor
   }
 
+  // objective : (bonus) define comparison operator for custom type
+
   def <=(other: Value): Boolean = {
     this.normalizedValue <= other.normalizedValue
   }
@@ -53,6 +55,7 @@ class Value(value: Double, unit: Unit) {
     this.normalizedValue == other.normalizedValue
   }
 
+  // objective : (bonus) define addition and substation operator for custom type
   def +(other: Value): Value = {
     new Value(this.normalizedValue + other.normalizedValue, Unit("g"))
   }

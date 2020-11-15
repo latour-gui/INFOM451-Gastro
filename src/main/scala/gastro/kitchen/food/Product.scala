@@ -2,13 +2,11 @@ package gastro.kitchen.food
 
 
 /**
- * gastro.menu.Product
- *
- * Ease manipulation of the product data
+ * The Product class ease the manipulation of the product data
  *
  * @param id         the id of the product (col 0 of products.csv)
  * @param name       the name of the product (col 1 if products.csv)
- * @param properties interesting properties (cols) of the file products.csv
+ * @param properties interesting properties (various cols) of the file products.csv
  */
 class Product(val id: Int, val name: String, properties: Seq[ProductProperty]) {
   override def toString: String = name + " (" + id.toString + ")"

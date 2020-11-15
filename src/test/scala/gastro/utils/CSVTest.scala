@@ -4,6 +4,7 @@ import org.scalatest.FunSuite
 
 import scala.util.Failure
 
+// objective : (bonus) write unit tests
 class CSVTest extends FunSuite {
   test("CSV.extract : coma with header") {
     val filePath = this.getClass.getResource("/good_coma_with_header.csv").getPath
