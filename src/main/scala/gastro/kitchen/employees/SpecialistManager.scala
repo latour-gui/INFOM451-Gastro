@@ -37,6 +37,10 @@ class SpecialistManager() extends Actor {
   /**
    * Small memoization of parameter specialistList
    *
+   * The instantiation of the Specialist actors have to be inside the Props function.
+   * The name of the Actors in the `actorOf` function MUST respect some specifications (invalid chars) so a call to
+   * `sanitizeActorName` is mandatory
+   *
    * @return the list of specialists
    */
   def getSpecialistRefList: Seq[ActorRef] = {
@@ -51,6 +55,7 @@ class SpecialistManager() extends Actor {
     this.specialistRefList
   }
 
+
   override def receive: Receive = {
     case OtherIngredientMessage(m) =>
       this.coq = Some(sender())
@@ -63,9 +68,19 @@ class SpecialistManager() extends Actor {
     case _ => promptMessage("Specialist received an incomprehensible message")
   }
 
+  /**
+   * Manage the specialists response
+   *
+   * There is a counter that has been initialised to zero that will certify that all specialists have sent a response
+   * There is a memorized tuple (score, product) that will keep the max value of score until all specialists have sent
+   * a message
+   *
+   * @param response the product that have the most important nutrition contribution to the preexisting menu
+   */
   def manageSpecificSpecialistResponse(response: Option[(Double, Product)]): Unit = {
     this.specificSpecialistResponseCount += 1
 
+    // replace memorized product only if its none or if its score is inferior to a new one
     response match {
       case Some(r: (Double, Product)) =>
         if (this.bestProductSoFar.isEmpty || r._1 > this.bestProductSoFar.get._1) {
@@ -74,23 +89,34 @@ class SpecialistManager() extends Actor {
       case None =>
     }
 
+    // check if every specialists have send something
     if (this.specificSpecialistResponseCount == this.getSpecialistRefList.length) {
+      // reset every memorized information
+      this.specificSpecialistResponseCount = 0
+      this.specialistRefList = Nil
       // objective : (bonus) manually dispose of child actors
       for (s <- this.getSpecialistRefList) {
         context.stop(s)
       }
-      this.specificSpecialistResponseCount = 0
-      this.specialistRefList = Nil
+
       coq.get ! OtherIngredientResponse(this.bestProductSoFar.map(_._2))
+      // of course the best product have to be reset after being sent
       this.bestProductSoFar = None
     }
   }
-
 }
 
 class Specialist(val name: String, val code: Int) extends Actor {
 
+  /**
+   * Check which product provide the best contribution to the existing menu regarding the specialist specification
+   *
+   * @param menu        the existing menu
+   * @param allProducts the product from which the specialist must choose the next ingredient
+   * @return the product that have best nutritional score contribution
+   */
   def provideBestProduct(menu: Menu, allProducts: Seq[Product]): Option[(Double, Product)] = {
+    // filter out the products that are inside the menu
     val choices = allProducts.filterNot(p => menu.products.map(_.id).toSet.contains(p.id))
 
     if (choices.isEmpty) {
