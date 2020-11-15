@@ -22,3 +22,12 @@ Here is a simple command that will help the corrector to easily get all the said
 ```shell script
 grep -rn --color -A 5 "// objective :"
 ``` 
+
+### Run the program
+
+(ofc you need sbt to be installed)
+
+After cloning this repository, place yourself at the same position that the `build.sbt` file and simply run
+```shell script
+sbt run
+```
