@@ -9,6 +9,7 @@ import gastro.utils.sanitizeActorName
 import scala.util.{Failure, Success}
 
 class SpecialistManager() extends Actor {
+  var coq: Option[ActorRef] = None
   var specialistRefList: Seq[ActorRef] = Nil
   var productList: Seq[Product] = Nil
   var ajrsList: Seq[ajr.Limit] = Nil
@@ -40,6 +41,7 @@ class SpecialistManager() extends Actor {
    */
   def getSpecialistRefList: Seq[ActorRef] = {
     if (this.specialistRefList.isEmpty) {
+      // objective : (bonus) generate child actors on the fly
       // objective : manipulate method with a Try[T] signature
       this.specialistRefList = rememberAJR().map(_.map(a => context.actorOf(Props(new Specialist(a.name, a.id)), sanitizeActorName(a.name)))) match {
         case Success(sl) => sl
@@ -50,16 +52,18 @@ class SpecialistManager() extends Actor {
   }
 
   override def receive: Receive = {
-    case OtherIngredientMessage(m) => for (s <- this.getSpecialistRefList) {
-      s ! BestProductMessage(m, this.getProductList)
-    }
+    case OtherIngredientMessage(m) =>
+      this.coq = Some(sender())
+      for (s <- this.getSpecialistRefList) {
+        s ! BestProductMessage(m, this.getProductList)
+      }
 
-    case BestProductResponse(r) => manageSpecificSpecialistResponse(r, sender)
+    case BestProductResponse(r) => manageSpecificSpecialistResponse(r)
 
     case _ => promptMessage("Specialist received an incomprehensible message")
   }
 
-  def manageSpecificSpecialistResponse(response: Option[(Double, Product)], assistant: ActorRef): Unit = {
+  def manageSpecificSpecialistResponse(response: Option[(Double, Product)]): Unit = {
     this.specificSpecialistResponseCount += 1
 
     response match {
@@ -71,11 +75,14 @@ class SpecialistManager() extends Actor {
     }
 
     if (this.specificSpecialistResponseCount == this.getSpecialistRefList.length) {
-      //      this.specificSpecialistResponseCount = 0
-      //      for (s <- this.getSpecialistRefList) {
-      //        context.stop(s)
-      //      }
-      assistant ! this.bestProductSoFar
+      // objective : (bonus) manually dispose of child actors
+      for (s <- this.getSpecialistRefList) {
+        context.stop(s)
+      }
+      this.specificSpecialistResponseCount = 0
+      this.specialistRefList = Nil
+      coq.get ! OtherIngredientResponse(this.bestProductSoFar.map(_._2))
+      this.bestProductSoFar = None
     }
   }
 
@@ -83,8 +90,8 @@ class SpecialistManager() extends Actor {
 
 class Specialist(val name: String, val code: Int) extends Actor {
 
-  def provideBestProduct(menu: Menu, products: Seq[Product]): Option[(Double, Product)] = {
-    val choices = products.filter(p => !menu.products.contains(p))
+  def provideBestProduct(menu: Menu, allProducts: Seq[Product]): Option[(Double, Product)] = {
+    val choices = allProducts.filterNot(p => menu.products.map(_.id).toSet.contains(p.id))
 
     if (choices.isEmpty) {
       return None

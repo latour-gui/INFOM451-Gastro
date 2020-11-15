@@ -8,7 +8,7 @@ import gastro.kitchen.employees.Coq
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
-import scala.util.Success
+import scala.util.{Failure, Success}
 
 object Main {
 
@@ -79,6 +79,7 @@ object Main {
         promptMessage("The '" + orderName + "' menu is prepared\n\n" + menu.toString)
       case Success(NewMenuResponse(None)) =>
         promptMessage("The kitchen was not able to produce a decent menu for '" + orderName + "'")
+      case Failure(exception) => promptMessage(exception.getMessage)
     }
   }
 

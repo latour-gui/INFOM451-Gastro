@@ -33,7 +33,6 @@ class Coq() extends Actor {
       this.maxProductInMenu = n
       this.assistant = context.actorOf(Props(new Assistant()), "Assistant")
       this.client = sender()
-      val specialist = context.actorOf(Props[SpecialistManager], "SpecialistManager")
 
       // objective : (bonus) use the ask pattern
       implicit val timeout: Timeout = Timeout(2.seconds)
@@ -45,7 +44,7 @@ class Coq() extends Actor {
           coreItem match {
             case Some(item) =>
               this.menu = new Menu(Seq(item))
-              askForNextProductToSpecialist(specialist, this.menu)
+              askForNextProductToSpecialist(this.menu)
             case None =>
               sendEmptyMenu()
           }
@@ -61,7 +60,7 @@ class Coq() extends Actor {
     case OtherIngredientResponse(product) =>
       product match {
         case Some(p) => this.menu = new Menu(this.menu.products :+ p)
-          askForNextProductToSpecialist(sender(), this.menu)
+          askForNextProductToSpecialist(this.menu)
         case None =>
           promptMessage("The specialists do not know which ingredient to add...")
           sendEmptyMenu()
@@ -81,10 +80,11 @@ class Coq() extends Actor {
    * @param specialistManager the actorRef to the specialist manager
    * @param menu              the menu that is composed right now
    */
-  def askForNextProductToSpecialist(specialistManager: ActorRef, menu: Menu): Unit = {
+  def askForNextProductToSpecialist(menu: Menu): Unit = {
     // check if the menu is not already of max size
     if (menu.products.length < this.maxProductInMenu) {
-      specialistManager ! OtherIngredientMessage(menu)
+      val specialist = context.actorOf(Props[SpecialistManager], "SpecialistManager" + menu.products.length)
+      specialist ! OtherIngredientMessage(menu)
     } else {
       validate(menu)
     }
